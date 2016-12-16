@@ -66,10 +66,6 @@ fi
 apt-get update
 apt-get -y upgrade
 
-# Install openjdk 8 and maven
-apt-get -y install openjdk-8-jdk maven
-
-
 apt-get -y install "postgresql-$PG_VERSION" "postgresql-contrib-$PG_VERSION"
 
 PG_CONF="/etc/postgresql/$PG_VERSION/main/postgresql.conf"
@@ -109,11 +105,6 @@ date > "$PROVISIONED_ON"
 
 echo "Successfully created PostgreSQL dev virtual machine."
 echo ""
-cd
-mkdir birtp
-cd birtp
-cp /vagrant/* .
-mvn package
-java -jar target/*.jar
+
 print_db_usage
 
