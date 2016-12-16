@@ -21,7 +21,7 @@ public class ContainerConfig {
 	protected DataSource dataSource() {
 		DriverManagerDataSource dataSource = new DriverManagerDataSource();
 		dataSource.setDriverClassName("org.postgresql.Driver");
-		dataSource.setUrl("jdbc:postgresql://localhost:5432/birtpdb");
+		dataSource.setUrl("jdbc:postgresql://localhost:15432/birtpdb");
 		dataSource.setUsername("birtuser");
 		dataSource.setPassword("mypassword");
 		return dataSource;
@@ -35,7 +35,7 @@ public class ContainerConfig {
 
 		try {
 			pool = new SimpleJDBCConnectionPool("org.postgresql.Driver",
-					"jdbc:postgresql://localhost:5432/birtpdb", "birtuser",
+					"jdbc:postgresql://localhost:15432/birtpdb", "birtuser",
 					"mypassword", 2, 10);
 
 		} catch (SQLException e) {
