@@ -2,12 +2,12 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.example</groupId>
-	<artifactId>birtp</artifactId>
+	<groupId>com.github.aikivinen</groupId>
+	<artifactId>birtdemo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>birtp</name>
+	<name>birtdemo</name>
 	<url>http://maven.apache.org</url>
 
 
@@ -15,7 +15,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<vaadin.version>7.4.2</vaadin.version>
 		<vaadin.plugin.version>${vaadin.version}</vaadin.plugin.version>
-		<start-class>com.example.birtp.App</start-class>
+		<start-class>com.github.aikivinen.birtdemo.App</start-class>
 		<java.version>1.8</java.version>
 	</properties>
 
