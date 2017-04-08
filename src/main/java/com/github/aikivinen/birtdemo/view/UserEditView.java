@@ -10,24 +10,24 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
-import com.vaadin.data.Container.Filter;
-import com.vaadin.data.Item;
+import com.vaadin.v7.data.Container.Filter;
+import com.vaadin.v7.data.Item;
 import com.vaadin.data.Validator;
-import com.vaadin.data.fieldgroup.FieldGroup;
-import com.vaadin.data.fieldgroup.FieldGroup.CommitException;
-import com.vaadin.data.util.sqlcontainer.SQLContainer;
+import com.vaadin.v7.data.fieldgroup.FieldGroup;
+import com.vaadin.v7.data.fieldgroup.FieldGroup.CommitException;
+import com.vaadin.v7.data.util.sqlcontainer.SQLContainer;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.spring.annotation.SpringView;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.CheckBox;
+import com.vaadin.v7.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.MenuBar;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.TextField;
+import com.vaadin.v7.ui.Table;
+import com.vaadin.v7.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
@@ -304,22 +304,24 @@ public class UserEditView extends VerticalLayout implements View {
 			if (editMode) {
 				userid.setReadOnly(true);
 			} else {
+				/*
 				userid.addValidator(new Validator() {
 
 					@Override
-					public void validate(Object value) throws InvalidValueException {
+					public void validate(Object value) throws Exception {
 						String val = (String) value;
 						if (val.isEmpty() || val == null)
-							throw new InvalidValueException(messageSource.getMessage("caption.usernamenotset", null, getLocale()));
+							throw new Exception(messageSource.getMessage("caption.usernamenotset", null, getLocale()));
 
 						for (Iterator iterator = sqlContainer.getItemIds().iterator(); iterator.hasNext();) {
 							String uname = (String) sqlContainer.getContainerProperty(iterator.next(), "username").getValue();
 							if (uname.equals(val))
-								throw new InvalidValueException(messageSource.getMessage("caption.usernametaken", null, getLocale()));
+								throw new Exception(messageSource.getMessage("caption.usernametaken", null, getLocale()));
 						}
 						return;
 					}
 				});
+				*/
 			}
 
 			

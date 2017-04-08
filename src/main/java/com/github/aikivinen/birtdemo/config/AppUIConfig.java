@@ -14,7 +14,7 @@ public class AppUIConfig {
 	@Bean
 	public ResourceBundleMessageSource messageSource() {
 		ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-		messageSource.setDefaultEncoding("UTF-8");
+		messageSource.setDefaultEncoding("UTF-8"); 
 		messageSource.setBasename("messages");
 		return messageSource;
 	}

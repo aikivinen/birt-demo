@@ -6,6 +6,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 
 import com.github.aikivinen.birtdemo.view.MainMenu;
 import com.vaadin.annotations.Theme;
+import com.vaadin.annotations.Widgetset;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
@@ -16,6 +17,7 @@ import com.vaadin.ui.VerticalLayout;
 
 @SpringUI
 @Theme("valo")
+@Widgetset("com.vaadin.v7.Vaadin7WidgetSet")
 public class AppUI extends UI {
 
 	@Autowired

@@ -9,10 +9,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
-import com.vaadin.data.util.sqlcontainer.SQLContainer;
-import com.vaadin.data.util.sqlcontainer.connection.JDBCConnectionPool;
-import com.vaadin.data.util.sqlcontainer.connection.SimpleJDBCConnectionPool;
-import com.vaadin.data.util.sqlcontainer.query.TableQuery;
+import com.vaadin.v7.data.util.sqlcontainer.SQLContainer;
+import com.vaadin.v7.data.util.sqlcontainer.connection.JDBCConnectionPool;
+import com.vaadin.v7.data.util.sqlcontainer.connection.SimpleJDBCConnectionPool;
+import com.vaadin.v7.data.util.sqlcontainer.query.TableQuery;
+
 
 @Configuration
 public class ContainerConfig {
@@ -21,9 +22,9 @@ public class ContainerConfig {
 	protected DataSource dataSource() {
 		DriverManagerDataSource dataSource = new DriverManagerDataSource();
 		dataSource.setDriverClassName("org.postgresql.Driver");
-		dataSource.setUrl("jdbc:postgresql://localhost:15432/birtpdb");
+		dataSource.setUrl("jdbc:postgresql://localhost:5432/birtdemo");
 		dataSource.setUsername("birtuser");
-		dataSource.setPassword("mypassword");
+		dataSource.setPassword("birt");
 		return dataSource;
 	}
 
@@ -35,8 +36,8 @@ public class ContainerConfig {
 
 		try {
 			pool = new SimpleJDBCConnectionPool("org.postgresql.Driver",
-					"jdbc:postgresql://localhost:15432/birtpdb", "birtuser",
-					"mypassword", 2, 10);
+					"jdbc:postgresql://localhost:5432/birtdemo", "birtuser",
+					"birt", 2, 10);
 
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -51,6 +52,7 @@ public class ContainerConfig {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 		container.setAutoCommit(false);
 		return container;
 	}
