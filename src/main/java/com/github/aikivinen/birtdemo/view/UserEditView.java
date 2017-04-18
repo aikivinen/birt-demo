@@ -1,7 +1,10 @@
 package com.github.aikivinen.birtdemo.view;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
@@ -20,6 +23,7 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontIcon;
 import com.vaadin.shared.ui.window.WindowMode;
 import com.vaadin.spring.annotation.SpringView;
+import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.FormLayout;
@@ -62,7 +66,7 @@ public class UserEditView extends VerticalLayout implements View {
 
 	@PostConstruct
 	void init() {
-
+		setMargin(false);
 		setupTable();
 		buildBar();
 
@@ -112,6 +116,7 @@ public class UserEditView extends VerticalLayout implements View {
 				VaadinIcons.MINUS, selectedItem -> {
 					userRepository.delete(table.getSelectedItems());
 					menuButtonRemove.setEnabled(false);
+					table.setItems(userRepository.findAll());
 				});
 
 		menuButtonRemove.setEnabled(false);
@@ -202,7 +207,7 @@ public class UserEditView extends VerticalLayout implements View {
 			winContent.setMargin(true);
 			buttons.setMargin(true);
 			setContent(winContent);
-			setWidth("300px");
+			setWidth("500px");
 
 			userid = new TextField(messageSource.getMessage("caption.username", null, getLocale()));
 			email = new TextField(messageSource.getMessage("caption.email", null, getLocale()));
@@ -213,6 +218,9 @@ public class UserEditView extends VerticalLayout implements View {
 			rightEdit = new CheckBox(messageSource.getMessage("caption.rightedit", null, getLocale()));
 			rightAdd = new CheckBox(messageSource.getMessage("caption.rightadd", null, getLocale()));
 			rightRemove = new CheckBox(messageSource.getMessage("caption.rightremove", null, getLocale()));
+
+			Arrays.stream(new AbstractField[] { userid, email, phone, password, rightPrint, rightEdit, rightAdd,
+					rightRemove }).forEach(e -> e.setWidth("100%"));
 
 			setUpBinder();
 
