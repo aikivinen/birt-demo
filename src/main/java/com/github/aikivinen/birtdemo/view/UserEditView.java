@@ -18,6 +18,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontIcon;
+import com.vaadin.shared.ui.window.WindowMode;
 import com.vaadin.spring.annotation.SpringView;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
@@ -135,7 +136,6 @@ public class UserEditView extends VerticalLayout implements View {
 		table.setSelectionMode(SelectionMode.SINGLE);
 
 		List<User> users = userRepository.findAll();
-		table.setItems(users);
 
 		table.addColumn(User::getUsername).setCaption(messageSource.getMessage("caption.username", null, getLocale()));
 		table.addColumn(User::getEmail).setCaption(messageSource.getMessage("caption.email", null, getLocale()));
@@ -157,6 +157,8 @@ public class UserEditView extends VerticalLayout implements View {
 			menuButtonRemove.setEnabled(!u.getAllSelectedItems().isEmpty());
 
 		});
+
+		table.setItems(users);
 
 	}
 
@@ -191,6 +193,7 @@ public class UserEditView extends VerticalLayout implements View {
 		public UserEditWindow() {
 			setModal(true);
 			setClosable(false);
+			setCaption("Edit user");
 			center();
 
 			winContent = new FormLayout();
@@ -214,7 +217,10 @@ public class UserEditView extends VerticalLayout implements View {
 			setUpBinder();
 
 			cancel = new Button(messageSource.getMessage("caption.cancel", null, getLocale()));
-			cancel.addClickListener(e -> close());
+			cancel.addClickListener(e -> {
+				close();
+				table.setItems(userRepository.findAll());
+			});
 
 			ok = new Button(messageSource.getMessage("caption.ok", null, getLocale()));
 			ok.addClickListener(e -> {
@@ -223,6 +229,9 @@ public class UserEditView extends VerticalLayout implements View {
 					this.bean = Optional.ofNullable(bean).orElse(new User());
 					binder.writeBean(bean);
 					userRepository.save(bean);
+					Notification.show("User saved");
+					close();
+					table.setItems(userRepository.findAll());
 				} catch (ValidationException e1) {
 					Notification.show("Bad values. Go fix them... please?");
 					logger.info(e1.getMessage(), e1);
@@ -246,6 +255,7 @@ public class UserEditView extends VerticalLayout implements View {
 		 * @param user
 		 */
 		public void setFieldDataSource(User user) {
+			this.bean = user;
 			this.binder.setBean(user);
 		}
 
