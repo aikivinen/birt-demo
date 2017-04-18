@@ -5,11 +5,13 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
 import com.github.aikivinen.birtdemo.domain.ValuesOne;
 import com.github.aikivinen.birtdemo.jpa.repository.ValuesOneRepository;
 import com.github.aikivinen.birtdemo.jpa.repository.ValuesTwoRepository;
+import com.vaadin.data.Binder;
+import com.vaadin.data.Binder.Binding;
+import com.vaadin.data.converter.StringToIntegerConverter;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -22,6 +24,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.components.grid.Editor;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
 
@@ -35,36 +38,36 @@ public class ValueEditView extends VerticalLayout implements View {
 	private static final Logger logger = LoggerFactory.getLogger(ValueEditView.class);
 
 	@Autowired
-	private ApplicationContext context;
-
-	@Autowired
 	private MessageSource messageSource;
 
 	@Autowired
 	private ValuesOneRepository valuesOneRepository;
-	
+
 	@Autowired
 	private ValuesTwoRepository valuesTwoRepository;
-	
-//	private JpaRepository<? extends CrudDemoObject, Integer> jpaRepoSelection;
-	
+
+	// private JpaRepository<? extends CrudDemoObject, Integer>
+	// jpaRepoSelection;
+
 	// bar
 	private HorizontalLayout upperBar;
 	private MenuBar menuBar;
 	private MenuItem menuButtonRemove;
 	private TextField filter;
 	private Button clearFilter;
-//	private ComboBox<JpaRepository<? extends CrudDemoObject, Integer>> tableSelect;
+	// private ComboBox<JpaRepository<? extends CrudDemoObject, Integer>>
+	// tableSelect;
 	private MenuItem editButton;
 
 	private Grid<ValuesOne> table;
 
 	@PostConstruct
 	void init() {
+		setMargin(false);
 
 		buildBar();
 		addComponent(upperBar);
-		
+
 		setupTable();
 		addComponent(table);
 
@@ -93,10 +96,9 @@ public class ValueEditView extends VerticalLayout implements View {
 
 		menuBar = new MenuBar();
 		menuBar.setWidth("100%");
-		menuBar.addItem(messageSource.getMessage("caption.add", null, getLocale()), VaadinIcons.PLUS,
-				selectedItem -> {
-					valuesOneRepository.save(new ValuesOne());
-				});
+		menuBar.addItem(messageSource.getMessage("caption.add", null, getLocale()), VaadinIcons.PLUS, selectedItem -> {
+			valuesOneRepository.save(new ValuesOne());
+		});
 
 		menuButtonRemove = menuBar.addItem(messageSource.getMessage("caption.delete", null, getLocale()),
 				VaadinIcons.MINUS, selectedItem -> {
@@ -104,60 +106,52 @@ public class ValueEditView extends VerticalLayout implements View {
 
 				});
 
-		editButton = menuBar.addItem(messageSource.getMessage("caption.edit", null, getLocale()), VaadinIcons.EDIT,
-				new Command() {
-
-					@Override
-					public void menuSelected(MenuItem selectedItem) {
-/*
- *  Garbage
-						if (table.isEditable()) {
-							// disable table editing
-							table.setEditable(false);
-
-							// save changes
-							try {
-								sqlContainer.commit();
-							} catch (UnsupportedOperationException | SQLException e) {
-								logger.error("Caught exception: ", e);
-								e.printStackTrace();
-							} catch (OptimisticLockException e) {
-								Notification.show(
-										messageSource.getMessage("caption.optlockerroredit", null, getLocale()),
-										Notification.Type.ERROR_MESSAGE);
-								logger.error("Caught exception: ", e);
-							}
-
-							// change button caption to "edit"
-							editButton.setText(messageSource.getMessage("caption.edit", null, getLocale()));
-							editButton.setIcon(FontAwesome.EDIT);
-						} else {
-							// make table editable
-							table.setEditable(true);
-
-							// change button caption to "save"
-							editButton.setText(messageSource.getMessage("caption.save", null, getLocale()));
-							editButton.setIcon(FontAwesome.SAVE);
-
-						}
- */
-					}
-				}
-				);
+		// editButton = menuBar.addItem(messageSource.getMessage("caption.edit",
+		// null, getLocale()), VaadinIcons.EDIT,
+		// new Command() {
+		//
+		// @Override
+		// public void menuSelected(MenuItem selectedItem) {
+		//
+		/*
+		 * Garbage if (table.isEditable()) { // disable table editing
+		 * table.setEditable(false);
+		 * 
+		 * // save changes try { sqlContainer.commit(); } catch
+		 * (UnsupportedOperationException | SQLException e) {
+		 * logger.error("Caught exception: ", e); e.printStackTrace(); } catch
+		 * (OptimisticLockException e) { Notification.show(
+		 * messageSource.getMessage("caption.optlockerroredit", null,
+		 * getLocale()), Notification.Type.ERROR_MESSAGE);
+		 * logger.error("Caught exception: ", e); }
+		 * 
+		 * // change button caption to "edit"
+		 * editButton.setText(messageSource.getMessage( "caption.edit", null,
+		 * getLocale())); editButton.setIcon(FontAwesome.EDIT); } else { // make
+		 * table editable table.setEditable(true);
+		 * 
+		 * // change button caption to "save"
+		 * editButton.setText(messageSource.getMessage( "caption.save", null,
+		 * getLocale())); editButton.setIcon(FontAwesome.SAVE);
+		 * 
+		 * }
+		 */
+		// }
+		// });
 
 		menuButtonRemove.setEnabled(false);
 
 		upperBar.addComponent(menuBar);
 
-//		tableSelect = new ComboBox<JpaRepository<? extends CrudDemoObject, Integer>>();
-//		tableSelect.setItems(valuesOneRepository, valuesTwoRepository);
-//		
-//		tableSelect.addValueChangeListener(e -> {
-//			this.jpaRepoSelection = e.getValue();
-//		});
+		// tableSelect = new ComboBox<JpaRepository<? extends CrudDemoObject,
+		// Integer>>();
+		// tableSelect.setItems(valuesOneRepository, valuesTwoRepository);
+		//
+		// tableSelect.addValueChangeListener(e -> {
+		// this.jpaRepoSelection = e.getValue();
+		// });
 
-		
-//		upperBar.addComponent(tableSelect);
+		// upperBar.addComponent(tableSelect);
 		upperBar.addComponent(filter);
 		upperBar.addComponent(clearFilter);
 		upperBar.setExpandRatio(menuBar, 1.0f);
@@ -175,6 +169,48 @@ public class ValueEditView extends VerticalLayout implements View {
 		table.addSelectionListener(e -> {
 			menuButtonRemove.setEnabled(!e.getAllSelectedItems().isEmpty());
 		});
+
+		TextField intfield1 = new TextField();
+		TextField intfield2 = new TextField();
+		TextField intfield3 = new TextField();
+
+		TextField stringfield1 = new TextField();
+		TextField stringfield2 = new TextField();
+		TextField stringfield3 = new TextField();
+
+		Editor<ValuesOne> editor = table.getEditor();
+		Binder<ValuesOne> binder = editor.getBinder();
+
+		table.addColumn(ValuesOne::getTextVal1).setCaption("Text value 1")
+				.setEditorBinding(binder.bind(stringfield1, ValuesOne::getTextVal1, ValuesOne::setTextVal1));
+
+		table.addColumn(ValuesOne::getTextVal2).setCaption("Text value 2")
+				.setEditorBinding(binder.bind(stringfield2, ValuesOne::getTextVal2, ValuesOne::setTextVal2));
+
+		table.addColumn(ValuesOne::getTextVal3).setCaption("Text value 3")
+				.setEditorBinding(binder.bind(stringfield3, ValuesOne::getTextVal3, ValuesOne::setTextVal3));
+
+		Binding<ValuesOne, Integer> binding1 = binder.forField(intfield1)
+				.withConverter(new StringToIntegerConverter(0, "nope"))
+				.bind(ValuesOne::getIntVal1, ValuesOne::setIntVal1);
+
+		Binding<ValuesOne, Integer> binding2 = binder.forField(intfield2)
+				.withConverter(new StringToIntegerConverter(0, "nope"))
+				.bind(ValuesOne::getIntVal2, ValuesOne::setIntVal2);
+
+		Binding<ValuesOne, Integer> binding3 = binder.forField(intfield3)
+				.withConverter(new StringToIntegerConverter(0, "nope"))
+				.bind(ValuesOne::getIntVal3, ValuesOne::setIntVal3);
+
+		table.addColumn(ValuesOne::getIntVal1).setCaption("Integer value 1").setEditorBinding(binding1);
+		table.addColumn(ValuesOne::getIntVal2).setCaption("Integer value 2").setEditorBinding(binding2);
+		table.addColumn(ValuesOne::getIntVal3).setCaption("Integer value 3").setEditorBinding(binding3);
+
+		editor.addSaveListener(e -> {
+			valuesOneRepository.save(e.getBean());
+		});
+
+		editor.setEnabled(true);
 
 		setTableDataSource();
 

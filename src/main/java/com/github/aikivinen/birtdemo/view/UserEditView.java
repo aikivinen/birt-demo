@@ -1,11 +1,8 @@
 package com.github.aikivinen.birtdemo.view;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
-
 import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
@@ -21,7 +18,7 @@ import com.vaadin.icons.VaadinIcons;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontIcon;
-import com.vaadin.shared.ui.window.WindowMode;
+import com.vaadin.shared.ui.grid.ColumnResizeMode;
 import com.vaadin.spring.annotation.SpringView;
 import com.vaadin.ui.AbstractField;
 import com.vaadin.ui.Button;
@@ -135,12 +132,13 @@ public class UserEditView extends VerticalLayout implements View {
 	 */
 
 	private void setupTable() {
-		table = new Grid<>(User.class);
+		table = new Grid<>();
 		table.setSizeFull();
 
 		table.setSelectionMode(SelectionMode.SINGLE);
+		table.setColumnResizeMode(ColumnResizeMode.ANIMATED);
+		table.setColumnReorderingAllowed(true);
 
-		List<User> users = userRepository.findAll();
 
 		table.addColumn(User::getUsername).setCaption(messageSource.getMessage("caption.username", null, getLocale()));
 		table.addColumn(User::getEmail).setCaption(messageSource.getMessage("caption.email", null, getLocale()));
@@ -163,6 +161,7 @@ public class UserEditView extends VerticalLayout implements View {
 
 		});
 
+		List<User> users = userRepository.findAll();
 		table.setItems(users);
 
 	}
