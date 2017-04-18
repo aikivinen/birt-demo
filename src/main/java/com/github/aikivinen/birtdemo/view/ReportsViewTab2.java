@@ -23,18 +23,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import com.vaadin.v7.data.Item;
-import com.vaadin.v7.data.Property;
-import com.vaadin.v7.data.util.ObjectProperty;
-import com.vaadin.v7.data.util.sqlcontainer.RowId;
-import com.vaadin.v7.data.util.sqlcontainer.SQLContainer;
 import com.vaadin.server.VaadinService;
 import com.vaadin.ui.Button;
-import com.vaadin.v7.ui.ComboBox;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
-import com.vaadin.v7.ui.TextArea;
+import com.vaadin.ui.TextArea;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Upload;
 import com.vaadin.ui.VerticalLayout;
@@ -47,6 +42,8 @@ import com.vaadin.ui.Upload.SucceededListener;
 @Component
 public class ReportsViewTab2 extends VerticalLayout {
 
+	/*
+	
 	@Autowired
 	MessageSource messageSource;
 
@@ -70,33 +67,25 @@ public class ReportsViewTab2 extends VerticalLayout {
 	void init() {
 		auth = SecurityContextHolder.getContext().getAuthentication();
 		userName = auth.getName();
-		SQLContainer users = (SQLContainer) context.getBean("sqlContainer",
-				"users", false);
+		SQLContainer users = (SQLContainer) context.getBean("sqlContainer", "users", false);
 
 		Item user = users.getItem(new RowId(userName));
 
 		if ((boolean) user.getItemProperty("right_add_report").getValue()
-				|| (boolean) user.getItemProperty("right_remove_report")
-						.getValue()
-				|| (boolean) user.getItemProperty("right_edit_report")
-						.getValue()) {
+				|| (boolean) user.getItemProperty("right_remove_report").getValue()
+				|| (boolean) user.getItemProperty("right_edit_report").getValue()) {
 
-			reportPath = VaadinService.getCurrent().getBaseDirectory()
-					.getAbsolutePath()
-					+ "/report-designs/";
+			reportPath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath() + "/report-designs/";
 			setMargin(true);
 			setSpacing(true);
-		
-			addComponent(new Label(messageSource.getMessage(
-					"caption.editreports", null, getLocale())));
+
+			addComponent(new Label(messageSource.getMessage("caption.editreports", null, getLocale())));
 
 			HorizontalLayout horizontal = new HorizontalLayout();
 
-			removeReport = new Button(messageSource.getMessage(
-					"caption.removereport", null, getLocale()), event -> {
+			removeReport = new Button(messageSource.getMessage("caption.removereport", null, getLocale()), event -> {
 				try {
-					Files.deleteIfExists(Paths.get(reportPath
-							+ cBox.getValue().toString()));
+					Files.deleteIfExists(Paths.get(reportPath + cBox.getValue().toString()));
 				} catch (IOException e) {
 					logger.error("Caught exception: ", e);
 				} catch (NullPointerException e) {
@@ -105,16 +94,13 @@ public class ReportsViewTab2 extends VerticalLayout {
 
 			});
 
-			addReport = new Button(messageSource.getMessage(
-					"caption.addreport", null, getLocale()), event -> {
+			addReport = new Button(messageSource.getMessage("caption.addreport", null, getLocale()), event -> {
 				UI.getCurrent().addWindow(new UploadWindow());
 			});
 
-			saveButton = new Button(messageSource.getMessage("caption.save",
-					null, getLocale()), event -> {
+			saveButton = new Button(messageSource.getMessage("caption.save", null, getLocale()), event -> {
 				try {
-					Files.write(Paths.get(reportPath + cBox.getValue()),
-							textArea.getValue().getBytes(),
+					Files.write(Paths.get(reportPath + cBox.getValue()), textArea.getValue().getBytes(),
 							StandardOpenOption.WRITE);
 				} catch (IOException e) {
 					logger.error("Caught exception: ", e);
@@ -126,8 +112,7 @@ public class ReportsViewTab2 extends VerticalLayout {
 			textArea.setWordwrap(false);
 			textArea.setSizeFull();
 			textAreaProperty = new ObjectProperty<String>(
-					messageSource.getMessage("caption.selectreport", null,
-							getLocale()));
+					messageSource.getMessage("caption.selectreport", null, getLocale()));
 			textArea.setPropertyDataSource(textAreaProperty);
 
 			horizontal.addComponent(setupComboBox());
@@ -145,15 +130,14 @@ public class ReportsViewTab2 extends VerticalLayout {
 				addReport.setEnabled(false);
 			}
 
-			if (!(boolean) user.getItemProperty("right_remove_report")
-					.getValue()) {
+			if (!(boolean) user.getItemProperty("right_remove_report").getValue()) {
 				removeReport.setEnabled(false);
 			}
 
 			if (!(boolean) user.getItemProperty("right_edit_report").getValue()) {
 				saveButton.setEnabled(false);
 				textArea.setVisible(false);
-			}else {
+			} else {
 				setSizeFull();
 			}
 		} else {
@@ -165,8 +149,7 @@ public class ReportsViewTab2 extends VerticalLayout {
 	private ComboBox setupComboBox() {
 		cBox = new ComboBox();
 		cBox.setNullSelectionAllowed(false);
-		cBox.setInputPrompt(messageSource.getMessage("caption.reportbox", null,
-				getLocale()));
+		cBox.setInputPrompt(messageSource.getMessage("caption.reportbox", null, getLocale()));
 
 		// get file listing
 		try {
@@ -183,13 +166,11 @@ public class ReportsViewTab2 extends VerticalLayout {
 			if (event.getProperty().getValue() != null) {
 				List<String> lines = null;
 				try {
-					lines = Files.readAllLines(Paths.get(reportPath
-							+ cBox.getValue()));
+					lines = Files.readAllLines(Paths.get(reportPath + cBox.getValue()));
 				} catch (IOException e) {
 					logger.error("Caught exception: ", e);
 				}
-				textAreaProperty.setValue(StringUtils
-						.collectionToDelimitedString(lines, "\n"));
+				textAreaProperty.setValue(StringUtils.collectionToDelimitedString(lines, "\n"));
 			}
 		});
 		return cBox;
@@ -200,8 +181,7 @@ public class ReportsViewTab2 extends VerticalLayout {
 		Button closeButton;
 
 		public UploadWindow() {
-			setCaption(messageSource.getMessage("caption.uploadwindowtitle",
-					null, getLocale()));
+			setCaption(messageSource.getMessage("caption.uploadwindowtitle", null, getLocale()));
 
 			setResizable(false);
 			setDraggable(false);
@@ -212,14 +192,11 @@ public class ReportsViewTab2 extends VerticalLayout {
 			content = new VerticalLayout();
 
 			FileReceiver rec = new FileReceiver();
-			Upload upload = new Upload(messageSource.getMessage(
-					"caption.selectfile", null, getLocale()), rec);
-			upload.setButtonCaption(messageSource.getMessage(
-					"caption.startupload", null, getLocale()));
+			Upload upload = new Upload(messageSource.getMessage("caption.selectfile", null, getLocale()), rec);
+			upload.setButtonCaption(messageSource.getMessage("caption.startupload", null, getLocale()));
 			upload.addSucceededListener(rec);
 
-			closeButton = new Button(messageSource.getMessage("caption.close",
-					null, getLocale()), e -> close());
+			closeButton = new Button(messageSource.getMessage("caption.close", null, getLocale()), e -> close());
 
 			content.addComponent(upload);
 			content.addComponent(closeButton);
@@ -249,9 +226,10 @@ public class ReportsViewTab2 extends VerticalLayout {
 		}
 
 		public void uploadSucceeded(SucceededEvent event) {
-			Notification.show(messageSource.getMessage("caption.uploadsuccess",
-					null, getLocale()), Notification.Type.HUMANIZED_MESSAGE);
+			Notification.show(messageSource.getMessage("caption.uploadsuccess", null, getLocale()),
+					Notification.Type.HUMANIZED_MESSAGE);
 			logger.info("File uploaded successfully");
 		}
 	}
+	*/
 }

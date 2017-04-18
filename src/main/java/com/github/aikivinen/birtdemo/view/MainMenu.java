@@ -1,7 +1,8 @@
 package com.github.aikivinen.birtdemo.view;
 
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.ExternalResource;
-import com.vaadin.server.FontAwesome;
+import com.vaadin.server.FontIcon;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ResourceReference;
@@ -15,15 +16,10 @@ import com.vaadin.ui.themes.ValoTheme;
 public class MainMenu extends CssLayout {
 
 	private final String MENU_TITLE = "Spring+Vaadin";
-	
+
 	public MainMenu() {
-		init();
-	}
-	
-	
-	void init() {
 		setPrimaryStyleName(ValoTheme.MENU_ROOT);
-		
+
 		Label title = new Label(MENU_TITLE);
 		title.setPrimaryStyleName(ValoTheme.MENU_TITLE);
 		title.addStyleName(ValoTheme.LABEL_BOLD);
@@ -35,28 +31,25 @@ public class MainMenu extends CssLayout {
 		addComponent(new ValoMenuItemButton("Reports", ReportsView.VIEW_NAME, ReportsView.ICON));
 		addComponent(new ValoMenuItemButton("Audit Log", AuditLogView.VIEW_NAME, AuditLogView.ICON));
 
-		
-		Button logout = new Button("Log out", FontAwesome.SIGN_OUT);
+		Button logout = new Button("Log out", VaadinIcons.SIGN_OUT);
 		logout.setPrimaryStyleName(ValoTheme.MENU_ITEM);
 
 		logout.addClickListener(new Button.ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				Resource res = new ExternalResource("logout");
-				final ResourceReference rr = ResourceReference.create(res,
-						event.getButton().getParent(), "logout");
+				final ResourceReference rr = ResourceReference.create(res, event.getButton().getParent(), "logout");
 				Page.getCurrent().open(rr.getURL(), null);
 			}
 		});
 		addComponents(new Label(), logout);
 	}
 
-
 	public class ValoMenuItemButton extends Button {
 
-//		private static final String STYLE_SELECTED = "selected";
+		// private static final String STYLE_SELECTED = "selected";
 
-		public ValoMenuItemButton(String caption, String viewName, FontAwesome icon) {
+		public ValoMenuItemButton(String caption, String viewName, FontIcon icon) {
 			setPrimaryStyleName(ValoTheme.MENU_ITEM);
 			setIcon(icon);
 			setCaption(caption);

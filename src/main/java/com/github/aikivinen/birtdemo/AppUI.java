@@ -17,7 +17,6 @@ import com.vaadin.ui.VerticalLayout;
 
 @SpringUI
 @Theme("valo")
-@Widgetset("com.vaadin.v7.Vaadin7WidgetSet")
 public class AppUI extends UI {
 
 	@Autowired

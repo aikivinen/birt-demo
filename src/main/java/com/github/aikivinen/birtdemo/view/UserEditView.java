@@ -1,7 +1,7 @@
 package com.github.aikivinen.birtdemo.view;
 
-import java.sql.SQLException;
-import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 
@@ -10,46 +10,47 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
-import com.vaadin.v7.data.Container.Filter;
-import com.vaadin.v7.data.Item;
-import com.vaadin.data.Validator;
-import com.vaadin.v7.data.fieldgroup.FieldGroup;
-import com.vaadin.v7.data.fieldgroup.FieldGroup.CommitException;
-import com.vaadin.v7.data.util.sqlcontainer.SQLContainer;
+import com.github.aikivinen.birtdemo.domain.User;
+import com.github.aikivinen.birtdemo.jpa.repository.UserRepository;
+import com.vaadin.data.Binder;
+import com.vaadin.data.ValidationException;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.server.FontAwesome;
+import com.vaadin.server.FontIcon;
 import com.vaadin.spring.annotation.SpringView;
 import com.vaadin.ui.Button;
-import com.vaadin.v7.ui.CheckBox;
-import com.vaadin.ui.Component;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.FormLayout;
+import com.vaadin.ui.Grid;
+import com.vaadin.ui.Grid.SelectionMode;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.MenuBar;
-import com.vaadin.v7.ui.Table;
-import com.vaadin.v7.ui.TextField;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.MenuBar.MenuItem;
 
-
 @SpringView(name = UserEditView.VIEW_NAME)
 @SuppressWarnings("serial")
 public class UserEditView extends VerticalLayout implements View {
 	public static final String VIEW_NAME = "users";
-	public static final FontAwesome ICON = FontAwesome.USERS;
+	public static final FontIcon ICON = VaadinIcons.USERS;
 
 	private Logger logger = LoggerFactory.getLogger(UserEditView.class);
 
 	@Autowired
-	private MessageSource messageSource;
+	MessageSource messageSource;
 
 	@Autowired
-	private ApplicationContext context;
+	ApplicationContext context;
 
-	private Table table;
-	private SQLContainer sqlContainer;
+	@Autowired
+	UserRepository userRepository;
+
+	private Grid<User> table;
 
 	// bar
 	private HorizontalLayout upperBar;
@@ -60,99 +61,57 @@ public class UserEditView extends VerticalLayout implements View {
 
 	@PostConstruct
 	void init() {
-		sqlContainer = (SQLContainer) context.getBean("sqlContainer", "users", true);
-		addComponent(buildBar());
-		addComponent(setupTable());
+
+		setupTable();
+		buildBar();
+
+		addComponent(upperBar);
+		addComponent(table);
+
 		setSizeFull();
 		setExpandRatio(table, 1);
 	}
 
-	private Component buildBar() {
+	private void buildBar() {
 		upperBar = new HorizontalLayout();
 		upperBar.setWidth("100%");
 
 		filter = new TextField();
-		filter.setInputPrompt(messageSource.getMessage("caption.filterdesc", null, getLocale()));
-		filter.addTextChangeListener(event -> {
-			sqlContainer.removeAllContainerFilters();
-			sqlContainer.addContainerFilter(new UserFilter(event.getText()));
+
+		filter.setPlaceholder(messageSource.getMessage("caption.filterdesc", null, getLocale()));
+		filter.addValueChangeListener(e -> {
+			// TODO: filter stuff...
 		});
 
-		clearFilter = new Button(FontAwesome.TIMES);
+		clearFilter = new Button(VaadinIcons.FILE_REMOVE);
 		clearFilter.setDescription(messageSource.getMessage("caption.filterdesc", null, getLocale()));
 		clearFilter.setEnabled(false);
 		clearFilter.addClickListener(event -> {
 			filter.setValue("");
-			sqlContainer.removeAllContainerFilters();
 			clearFilter.setEnabled(false);
 		});
 
 		// menuBar
 		menuBar = new MenuBar();
 		menuBar.setWidth("100.0%");
-		menuBar.addItem(messageSource.getMessage("caption.add", null, getLocale()), FontAwesome.PLUS_SQUARE, selectedItem -> {
-			Object itemId = sqlContainer.addItem();
-			UserEditWindow win = new UserEditWindow(false) {
-
-				@Override
-				protected void okClick() {
-					try {
-						sqlContainer.commit();
-						close();
-					} catch (UnsupportedOperationException e) {
-						logger.error("Exception caught: ", e);
-					} catch (SQLException e) {
-						logger.error("Exception caught: ", e);
-					}
-				}
-
-				@Override
-				protected void cancelClick() {
-					sqlContainer.removeItem(itemId);
-					close();
-				}
-			};
-			win.setFieldDataSource(sqlContainer.getItem(itemId));
+		menuBar.addItem(messageSource.getMessage("caption.add", null, getLocale()), VaadinIcons.PLUS, selectedItem -> {
+			UserEditWindow win = new UserEditWindow();
+			win.setFieldDataSource(new User());
 			UI.getCurrent().addWindow(win);
 		});
 
-		menuBar.addItem(messageSource.getMessage("caption.edit", null, getLocale()), FontAwesome.EDIT, selectedItem -> {
-
-			UserEditWindow win = new UserEditWindow(true) {
-
-				@Override
-				protected void okClick() {
-					try {
-						sqlContainer.commit();
-						close();
-					} catch (UnsupportedOperationException e) {
-						logger.error("Exception caught: ", e);
-					} catch (SQLException e) {
-						logger.error("Exception caught: ", e);
-					}
-				}
-
-				@Override
-				protected void cancelClick() {
-					close();
-				}
-			};
-			win.setFieldDataSource(sqlContainer.getItem(table.getValue()));
+		menuBar.addItem(messageSource.getMessage("caption.edit", null, getLocale()), VaadinIcons.EDIT, selectedItem -> {
+			UserEditWindow win = new UserEditWindow();
+			win.setFieldDataSource(table.getSelectedItems().stream().findFirst().orElse(new User()));
 			UI.getCurrent().addWindow(win);
 
 		});
 
-		menuButtonRemove = menuBar.addItem(messageSource.getMessage("caption.delete", null, getLocale()), FontAwesome.MINUS_SQUARE, selectedItem -> {
-			Object iid = table.getValue();
-			sqlContainer.removeItem(iid);
-
-			try {
-				sqlContainer.commit();
-			} catch (SQLException e) {
-				logger.error("Exception caught: ", e);
-			}
-			menuButtonRemove.setEnabled(false);
-		});
+		menuButtonRemove = menuBar.addItem(messageSource.getMessage("caption.delete", null, getLocale()),
+				VaadinIcons.MINUS, selectedItem -> {
+					userRepository.delete(table.getSelectedItems());
+					menuButtonRemove.setEnabled(false);
+				});
 
 		menuButtonRemove.setEnabled(false);
 
@@ -161,7 +120,6 @@ public class UserEditView extends VerticalLayout implements View {
 		upperBar.addComponent(clearFilter);
 		upperBar.setExpandRatio(menuBar, 1.0f);
 
-		return upperBar;
 	}
 
 	/**
@@ -170,171 +128,152 @@ public class UserEditView extends VerticalLayout implements View {
 	 * @return the table
 	 */
 
-	private Table setupTable() {
-		table = new Table();
+	private void setupTable() {
+		table = new Grid<>(User.class);
 		table.setSizeFull();
 
-		table.setSelectable(true);
-		table.setImmediate(true);
-		table.setNullSelectionAllowed(false);
+		table.setSelectionMode(SelectionMode.SINGLE);
 
-		table.setContainerDataSource(sqlContainer);
+		List<User> users = userRepository.findAll();
+		table.setItems(users);
 
-		table.setColumnHeader("username", messageSource.getMessage("caption.username", null, getLocale()));
-		table.setColumnHeader("email", messageSource.getMessage("caption.email", null, getLocale()));
-		table.setColumnHeader("phone", messageSource.getMessage("caption.phone", null, getLocale()));
-		table.setColumnHeader("right_print_report", messageSource.getMessage("caption.rightprint", null, getLocale()));
-		table.setColumnHeader("right_edit_report", messageSource.getMessage("caption.rightedit", null, getLocale()));
-		table.setColumnHeader("right_add_report", messageSource.getMessage("caption.rightadd", null, getLocale()));
-		table.setColumnHeader("right_remove_report", messageSource.getMessage("caption.rightremove", null, getLocale()));
+		table.addColumn(User::getUsername).setCaption(messageSource.getMessage("caption.username", null, getLocale()));
+		table.addColumn(User::getEmail).setCaption(messageSource.getMessage("caption.email", null, getLocale()));
+		table.addColumn(User::getPhone).setCaption(messageSource.getMessage("caption.phone", null, getLocale()));
 
-		table.setVisibleColumns(new Object[] { "username" ,"email", "phone", "right_print_report", "right_edit_report", "right_add_report", "right_remove_report","authority" ,"enabled" });
+		table.addColumn(User::isRightToPrintReport)
+				.setCaption(messageSource.getMessage("caption.rightprint", null, getLocale()));
 
-		table.addValueChangeListener(e -> {
-			menuButtonRemove.setEnabled(true);
+		table.addColumn(User::isRightToEditReport)
+				.setCaption(messageSource.getMessage("caption.rightedit", null, getLocale()));
+
+		table.addColumn(User::isRightToAddReport)
+				.setCaption(messageSource.getMessage("caption.rightadd", null, getLocale()));
+
+		table.addColumn(User::isRightToRemoveReport)
+				.setCaption(messageSource.getMessage("caption.rightremove", null, getLocale()));
+
+		table.addSelectionListener(u -> {
+			menuButtonRemove.setEnabled(!u.getAllSelectedItems().isEmpty());
+
 		});
-		return table;
+
 	}
 
 	@Override
 	public void enter(ViewChangeEvent event) {
 	}
 
-	public class UserFilter implements Filter {
-		private String needle;
+	public class UserEditWindow extends Window {
 
-		public UserFilter(String needle) {
-			this.needle = needle.toLowerCase();
-		}
+		private Logger logger = LoggerFactory.getLogger(UserEditWindow.class);
 
-		@Override
-		public boolean passesFilter(Object itemId, Item item) {
-			String haystack = ("" + item.getItemProperty("username").getValue()).toLowerCase();
-			return haystack.contains(needle);
-		}
-
-		@Override
-		public boolean appliesToProperty(Object id) {
-			return true;
-		}
-
-	}
-	
-	public abstract class UserEditWindow extends Window {
-			
 		private FormLayout winContent;
-		private HorizontalLayout buttons;
-		private FieldGroup fields;
+
 		private TextField userid;
 		private TextField password;
 		private TextField email;
 		private TextField phone;
-		private CheckBox rightPrint, rightEdit, rightAdd, rightRemove;
+
+		private CheckBox rightPrint;
+		private CheckBox rightEdit;
+		private CheckBox rightAdd;
+		private CheckBox rightRemove;
+
+		private HorizontalLayout buttons;
 		private Button cancel;
 		private Button ok;
-		private SQLContainer sqlContainer;
-		
-		Logger logger = LoggerFactory.getLogger(UserEditWindow.class);
 
-		private boolean editMode;
+		private Binder<User> binder;
 
-		public UserEditWindow(boolean editMode) {
-				this.editMode = editMode;
-		}
-		
-		@PostConstruct
-		void init() {
-			
+		private User bean;
+
+		public UserEditWindow() {
 			setModal(true);
 			setClosable(false);
 			center();
-			
+
 			winContent = new FormLayout();
 			buttons = new HorizontalLayout();
-			fields = new FieldGroup();
-			
+
 			winContent.setMargin(true);
 			buttons.setMargin(true);
 			setContent(winContent);
 			setWidth("300px");
-			
-			sqlContainer = (SQLContainer) context.getBean("sqlContainer","users",true);
-			
+
 			userid = new TextField(messageSource.getMessage("caption.username", null, getLocale()));
 			email = new TextField(messageSource.getMessage("caption.email", null, getLocale()));
 			phone = new TextField(messageSource.getMessage("caption.phone", null, getLocale()));
 			password = new TextField(messageSource.getMessage("caption.password", null, getLocale()));
-			cancel = new Button(messageSource.getMessage("caption.cancel", null, getLocale()), event -> {cancelClick();});
-			
-			ok = new Button(messageSource.getMessage("caption.ok", null, getLocale()), event -> {
-					try {
-						fields.commit();
-					} catch (CommitException e) {
-						logger.error("CommitException at UserEditWindow", e);
-					}
-					okClick();
-			});
 
 			rightPrint = new CheckBox(messageSource.getMessage("caption.rightprint", null, getLocale()));
 			rightEdit = new CheckBox(messageSource.getMessage("caption.rightedit", null, getLocale()));
 			rightAdd = new CheckBox(messageSource.getMessage("caption.rightadd", null, getLocale()));
 			rightRemove = new CheckBox(messageSource.getMessage("caption.rightremove", null, getLocale()));
 
+			setUpBinder();
+
+			cancel = new Button(messageSource.getMessage("caption.cancel", null, getLocale()));
+			cancel.addClickListener(e -> close());
+
+			ok = new Button(messageSource.getMessage("caption.ok", null, getLocale()));
+			ok.addClickListener(e -> {
+
+				try {
+					this.bean = Optional.ofNullable(bean).orElse(new User());
+					binder.writeBean(bean);
+					userRepository.save(bean);
+				} catch (ValidationException e1) {
+					Notification.show("Bad values. Go fix them... please?");
+					logger.info(e1.getMessage(), e1);
+				}
+			});
+
 			buttons = new HorizontalLayout();
 			buttons.setSpacing(true);
 			buttons.addComponent(ok);
 			buttons.addComponent(cancel);
 
-			userid.setNullRepresentation("");
-			userid.setRequired(true);
-			email.setNullRepresentation("");
-			phone.setNullRepresentation("");
+			winContent.addComponents(userid, password, email, phone, rightPrint, rightEdit, rightAdd, rightRemove,
+					buttons);
 
-			fields.bind(userid, "username");
-			fields.bind(email, "email");
-			fields.bind(phone, "phone");
-			fields.bind(password, password);
-			fields.bind(rightPrint, "right_print_report");
-			fields.bind(rightEdit, "right_edit_report");
-			fields.bind(rightAdd, "right_add_report");
-			fields.bind(rightRemove, "right_remove_report");
-
-			winContent.addComponents(userid, password, email, phone, rightPrint, rightEdit, rightAdd, rightRemove, buttons);
-
-			if (editMode) {
-				userid.setReadOnly(true);
-			} else {
-				/*
-				userid.addValidator(new Validator() {
-
-					@Override
-					public void validate(Object value) throws Exception {
-						String val = (String) value;
-						if (val.isEmpty() || val == null)
-							throw new Exception(messageSource.getMessage("caption.usernamenotset", null, getLocale()));
-
-						for (Iterator iterator = sqlContainer.getItemIds().iterator(); iterator.hasNext();) {
-							String uname = (String) sqlContainer.getContainerProperty(iterator.next(), "username").getValue();
-							if (uname.equals(val))
-								throw new Exception(messageSource.getMessage("caption.usernametaken", null, getLocale()));
-						}
-						return;
-					}
-				});
-				*/
-			}
-
-			
 		}
 
-		protected abstract void okClick();
-
-		protected abstract void cancelClick();
-
-		public void setFieldDataSource(Item itemDataSource) {
-			fields.setItemDataSource(itemDataSource);
+		/**
+		 * Set the user to be edited in this Window, e.i. bind the given User to
+		 * fields
+		 * 
+		 * @param user
+		 */
+		public void setFieldDataSource(User user) {
+			this.binder.setBean(user);
 		}
 
+		/**
+		 * Set the fields on the window as read only
+		 */
+		public void setReadOnly(boolean readonly) {
+			this.binder.setReadOnly(readonly);
+			ok.setEnabled(!readonly);
+		}
+
+		private void setUpBinder() {
+			this.binder = new Binder<>(User.class);
+			binder.forField(userid).bind(User::getUsername, User::setUsername);
+
+			// TODO: redo this
+			binder.forField(password).bind(User::getPassword, User::setPassword);
+
+			binder.forField(email).bind(User::getEmail, User::setEmail);
+			binder.forField(phone).bind(User::getPhone, User::setPhone);
+
+			// rights management
+			binder.forField(rightAdd).bind(User::isRightToAddReport, User::setRightToAddReport);
+			binder.forField(rightEdit).bind(User::isRightToEditReport, User::setRightToEditReport);
+			binder.forField(rightPrint).bind(User::isRightToPrintReport, User::setRightToPrintReport);
+			binder.forField(rightRemove).bind(User::isRightToRemoveReport, User::setRightToRemoveReport);
+
+		}
 	}
 
 }

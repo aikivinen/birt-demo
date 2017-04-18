@@ -2,14 +2,13 @@ package com.github.aikivinen.birtdemo.view;
 
 import javax.annotation.PostConstruct;
 
-import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.server.FontAwesome;
+import com.vaadin.server.FontIcon;
 import com.vaadin.spring.annotation.SpringView;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Label;
@@ -21,7 +20,7 @@ import com.vaadin.ui.themes.ValoTheme;
 public class DefaultView extends VerticalLayout implements View {
 
 	public static final String VIEW_NAME = "";
-	public static final FontAwesome ICON = FontAwesome.APPLE;
+	public static final FontIcon ICON = VaadinIcons.DIAMOND;
 
 	@PostConstruct
 	void init() {

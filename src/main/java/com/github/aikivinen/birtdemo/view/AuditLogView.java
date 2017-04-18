@@ -5,40 +5,46 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+import com.github.aikivinen.birtdemo.domain.AuditLogEntry;
+import com.github.aikivinen.birtdemo.jpa.repository.AuditLogRepository;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.server.FontAwesome;
+import com.vaadin.server.FontIcon;
 import com.vaadin.spring.annotation.SpringView;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Grid;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.v7.data.util.sqlcontainer.SQLContainer;
-import com.vaadin.v7.ui.Table;
 
 @SpringView(name = AuditLogView.VIEW_NAME)
 public class AuditLogView extends VerticalLayout implements View {
 
 	public final static String VIEW_NAME = "audit-log";
-	public final static FontAwesome ICON = FontAwesome.LIST;
-	
+	public final static FontIcon ICON = VaadinIcons.LIST;
+
 	@Autowired
-	ApplicationContext context;
-	
+	AuditLogRepository logRepository;
+
 	@Override
-	public void enter(ViewChangeEvent event) {	
+	public void enter(ViewChangeEvent event) {
 	}
-	
+
 	@PostConstruct
 	void init() {
 		setSizeFull();
-		Table table = new Table();	
-		addComponent(table);
-		table.setSizeFull();
-		SQLContainer sqlContainer = (SQLContainer) context.getBean("sqlContainer","audit_log", false);
-		table.setContainerDataSource(sqlContainer);
+		Grid<AuditLogEntry> grid = new Grid<AuditLogEntry>();
+		grid.setSizeFull();
+
+		addComponent(grid);
+		grid.addColumn(AuditLogEntry::getDate);
+		grid.addColumn(AuditLogEntry::getText);
+
+		grid.setItems(logRepository.findAll());
+
 		addComponent(new Button("refresh", event -> {
-			sqlContainer.refresh();
+			grid.setItems(logRepository.findAll());
 		}));
-		setExpandRatio(table, 1);
-		setSpacing(true);
+
+		setExpandRatio(grid, 1);
 	}
 }

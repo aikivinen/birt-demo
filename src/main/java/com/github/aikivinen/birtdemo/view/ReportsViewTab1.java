@@ -23,25 +23,20 @@ import org.springframework.stereotype.Component;
 import com.github.aikivinen.birtdemo.ReportEngineHandlerImpl;
 import com.github.aikivinen.birtdemo.ReportEngineHandlerImpl.Format;
 import com.vaadin.server.FileDownloader;
-import com.vaadin.server.FontAwesome;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.v7.data.Item;
-import com.vaadin.v7.data.Property;
-import com.vaadin.v7.data.util.sqlcontainer.RowId;
-import com.vaadin.v7.data.util.sqlcontainer.SQLContainer;
-import com.vaadin.v7.ui.ComboBox;
-import com.vaadin.v7.ui.OptionGroup;
+import com.vaadin.ui.ComboBox;
 
 @SuppressWarnings("serial")
 @Scope("prototype")
 @Component
 public class ReportsViewTab1 extends VerticalLayout {
 
+	/*
 	@Autowired
 	private ApplicationContext context;
 
@@ -121,6 +116,7 @@ public class ReportsViewTab1 extends VerticalLayout {
 	 * 
 	 * @return built OptionGroup
 	 */
+	/*
 	private OptionGroup buildOptionGroup() {
 		optionGroup = new OptionGroup();
 		optionGroup.addItem(Format.HTML);
@@ -190,5 +186,5 @@ public class ReportsViewTab1 extends VerticalLayout {
 		}
 		return fileDownloader;
 	}
-
+*/
 }
