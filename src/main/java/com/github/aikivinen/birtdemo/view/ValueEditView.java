@@ -97,47 +97,22 @@ public class ValueEditView extends VerticalLayout implements View {
 		menuBar = new MenuBar();
 		menuBar.setWidth("100%");
 		menuBar.addItem(messageSource.getMessage("caption.add", null, getLocale()), VaadinIcons.PLUS, selectedItem -> {
-			valuesOneRepository.save(new ValuesOne());
+			ValuesOne item = new ValuesOne();
+			item = valuesOneRepository.save(item);
+			table.setItems(valuesOneRepository.findAll());
 		});
 
 		menuButtonRemove = menuBar.addItem(messageSource.getMessage("caption.delete", null, getLocale()),
 				VaadinIcons.MINUS, selectedItem -> {
 					valuesOneRepository.delete(table.getSelectedItems());
+					table.setItems(valuesOneRepository.findAll());
 
 				});
 
-		// editButton = menuBar.addItem(messageSource.getMessage("caption.edit",
-		// null, getLocale()), VaadinIcons.EDIT,
-		// new Command() {
-		//
-		// @Override
-		// public void menuSelected(MenuItem selectedItem) {
-		//
-		/*
-		 * Garbage if (table.isEditable()) { // disable table editing
-		 * table.setEditable(false);
-		 * 
-		 * // save changes try { sqlContainer.commit(); } catch
-		 * (UnsupportedOperationException | SQLException e) {
-		 * logger.error("Caught exception: ", e); e.printStackTrace(); } catch
-		 * (OptimisticLockException e) { Notification.show(
-		 * messageSource.getMessage("caption.optlockerroredit", null,
-		 * getLocale()), Notification.Type.ERROR_MESSAGE);
-		 * logger.error("Caught exception: ", e); }
-		 * 
-		 * // change button caption to "edit"
-		 * editButton.setText(messageSource.getMessage( "caption.edit", null,
-		 * getLocale())); editButton.setIcon(FontAwesome.EDIT); } else { // make
-		 * table editable table.setEditable(true);
-		 * 
-		 * // change button caption to "save"
-		 * editButton.setText(messageSource.getMessage( "caption.save", null,
-		 * getLocale())); editButton.setIcon(FontAwesome.SAVE);
-		 * 
-		 * }
-		 */
-		// }
-		// });
+		editButton = menuBar.addItem(messageSource.getMessage("caption.edit", null, getLocale()), VaadinIcons.EDIT,
+				c -> {
+					table.getEditor();
+				});
 
 		menuButtonRemove.setEnabled(false);
 
