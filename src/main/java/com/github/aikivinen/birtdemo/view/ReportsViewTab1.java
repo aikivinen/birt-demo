@@ -5,8 +5,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -22,12 +25,15 @@ import org.springframework.stereotype.Component;
 
 import com.github.aikivinen.birtdemo.ReportEngineHandlerImpl;
 import com.github.aikivinen.birtdemo.ReportEngineHandlerImpl.Format;
+import com.vaadin.data.HasValue.ValueChangeListener;
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.FileDownloader;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.VaadinService;
 import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.RadioButtonGroup;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.ComboBox;
 
@@ -36,78 +42,89 @@ import com.vaadin.ui.ComboBox;
 @Component
 public class ReportsViewTab1 extends VerticalLayout {
 
-	/*
+	private static final Logger logger = LoggerFactory.getLogger(ReportsViewTab1.class);
+
 	@Autowired
 	private ApplicationContext context;
 
 	@Autowired
 	private MessageSource messageSource;
 
-	private String reportPath;
-
 	@Autowired
 	private ReportEngineHandlerImpl reHandler;
 
-	private ComboBox cBox;
+	private ComboBox<Path> cBox;
 	private Button download;
-	private OptionGroup optionGroup;
+	private RadioButtonGroup<Format> optionGroup;
 	private ByteArrayOutputStream bos;
-	private Logger logger = LoggerFactory.getLogger(ReportsViewTab1.class);
 
 	private FileDownloader fileDownloader;
 
-	private	Authentication auth;
-	private String userName;
-
 	@PostConstruct
 	void init() {
-		auth = SecurityContextHolder.getContext().getAuthentication();
-		userName = auth.getName();
-		SQLContainer users = (SQLContainer) context.getBean("sqlContainer",
-				"users", false);
-		
-		Item user = users.getItem(new RowId(userName));
-		Property prop = user.getItemProperty("right_print_report");
-		boolean hasRight = (boolean) prop.getValue();
+		boolean hasRight = checkUserPrintRight();
 
 		if (hasRight) {
 
-			reportPath = VaadinService.getCurrent().getBaseDirectory()
-					.getAbsolutePath()
-					+ "/report-designs/";
-
 			setSpacing(true);
-			addComponent(new Label(messageSource.getMessage(
-					"caption.viewreports", null, getLocale())));
-			addComponent(buildCombobox());
+			addComponent(new Label(messageSource.getMessage("caption.viewreports", null, getLocale())));
+
+			String placeholder = messageSource.getMessage("caption.reportbox", null, getLocale());
+
+			Path reportPath = Paths
+					.get(VaadinService.getCurrent().getBaseDirectory().getAbsolutePath() + "/report-designs/");
+
+			cBox = ViewComponents.buildFileListingComboBox("File", placeholder, reportPath, event -> {
+				reHandler.setDesing(event.getValue().toString());
+				optionGroup.setVisible(true);
+				setFileDownloader();
+			});
+
+			addComponent(cBox);
 			addComponent(new Label("Select file format"));
 			addComponent(buildOptionGroup());
 
 			download = new Button("Download");
-			download.setIcon(FontAwesome.DOWNLOAD);
+			download.setIcon(VaadinIcons.DOWNLOAD);
 			download.setVisible(false);
+
 			download.addClickListener(event -> {
-				SQLContainer logContainer = (SQLContainer) context.getBean(
-						"sqlContainer", "audit_log", false);
-				Date date = new Date();
-				Object id = logContainer.addItem();
-				Item item = logContainer.getItem(id);
-				item.getItemProperty("date").setValue(date);
-				item.getItemProperty("log")
-						.setValue(
-								String.format(
-										"User '%s' downloaded a report. Design file: '%s'",
-										userName, cBox.getValue()));
-				try {
-					logContainer.commit();
-				} catch (Exception e) {
-					logger.error("Exception committing audit log: ", e);
-				}
+				addAuditLogEntry();
 			});
+
 			addComponent(download);
 		} else {
 			addComponent(new Label("You are not allowed to generate reports"));
 		}
+	}
+
+	private void addAuditLogEntry() {
+		/*
+		 * SQLContainer logContainer = (SQLContainer)
+		 * context.getBean("sqlContainer", "audit_log", false); Date date = new
+		 * Date(); Object id = logContainer.addItem(); Item item =
+		 * logContainer.getItem(id);
+		 * item.getItemProperty("date").setValue(date);
+		 * item.getItemProperty("log").setValue(
+		 * String.format("User '%s' downloaded a report. Design file: '%s'",
+		 * userName, cBox.getValue())); try { logContainer.commit(); } catch
+		 * (Exception e) { logger.error("Exception committing audit log: ", e);
+		 * }
+		 */
+	}
+
+	private boolean checkUserPrintRight() {
+		return true;
+
+		/*
+		 * auth = SecurityContextHolder.getContext().getAuthentication();
+		 * userName = auth.getName(); SQLContainer users = (SQLContainer)
+		 * context.getBean("sqlContainer", "users", false);
+		 * 
+		 * Item user = users.getItem(new RowId(userName)); Property prop =
+		 * user.getItemProperty("right_print_report"); boolean hasRight =
+		 * (boolean) prop.getValue(); return hasRight;
+		 */
 	}
 
 	/**
@@ -116,11 +133,11 @@ public class ReportsViewTab1 extends VerticalLayout {
 	 * 
 	 * @return built OptionGroup
 	 */
-	/*
-	private OptionGroup buildOptionGroup() {
-		optionGroup = new OptionGroup();
-		optionGroup.addItem(Format.HTML);
-		optionGroup.addItem(Format.PDF);
+
+	private RadioButtonGroup<Format> buildOptionGroup() {
+		optionGroup = new RadioButtonGroup<>();
+		optionGroup.setItems(Format.HTML, Format.PDF);
+
 		optionGroup.setVisible(false);
 
 		optionGroup.addValueChangeListener(event -> {
@@ -140,37 +157,9 @@ public class ReportsViewTab1 extends VerticalLayout {
 				public InputStream getStream() {
 					return new ByteArrayInputStream(bos.toByteArray());
 				}
-			}, new Date().toString().replace(' ', '-') + "report."
-					+ format.toString().toLowerCase());
+			}, new Date().toString().replace(' ', '-') + "report." + format.toString().toLowerCase());
 		}
 		return res;
-	}
-
-	private ComboBox buildCombobox() {
-		cBox = new ComboBox();
-		cBox.setNullSelectionAllowed(false);
-		cBox.setInputPrompt(messageSource.getMessage("caption.reportbox", null,
-				getLocale()));
-
-		// get file listing
-		try {
-			Files.walk(Paths.get(reportPath)).forEach(filePath -> {
-				if (Files.isRegularFile(filePath)) {
-					cBox.addItem(filePath.getFileName().toString());
-				}
-			});
-		} catch (IOException e) {
-			logger.error("Caught exception: ", e);
-		}
-		cBox.addValueChangeListener(event -> {
-			if (event.getProperty().getValue() != null) {
-				reHandler.setDesing(reportPath + cBox.getValue());
-				optionGroup.setVisible(true);
-				setFileDownloader();
-			}
-
-		});
-		return cBox;
 	}
 
 	private FileDownloader setFileDownloader() {
@@ -186,5 +175,5 @@ public class ReportsViewTab1 extends VerticalLayout {
 		}
 		return fileDownloader;
 	}
-*/
+
 }
