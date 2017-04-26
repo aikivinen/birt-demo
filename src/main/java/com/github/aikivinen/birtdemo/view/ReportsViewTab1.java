@@ -2,15 +2,10 @@ package com.github.aikivinen.birtdemo.view;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
@@ -19,13 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Scope;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import com.github.aikivinen.birtdemo.ReportEngineHandlerImpl;
 import com.github.aikivinen.birtdemo.ReportEngineHandlerImpl.Format;
-import com.vaadin.data.HasValue.ValueChangeListener;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.FileDownloader;
 import com.vaadin.server.StreamResource;
@@ -166,7 +158,7 @@ public class ReportsViewTab1 extends VerticalLayout {
 		if (optionGroup.getValue() == null)
 			return null;
 
-		StreamResource stream = getStream((Format) optionGroup.getValue());
+		StreamResource stream = getStream(optionGroup.getValue());
 		if (fileDownloader == null) {
 			fileDownloader = new FileDownloader(stream);
 			fileDownloader.extend(download);

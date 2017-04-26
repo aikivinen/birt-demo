@@ -111,7 +111,9 @@ public class ValueEditView extends VerticalLayout implements View {
 
 		editButton = menuBar.addItem(messageSource.getMessage("caption.edit", null, getLocale()), VaadinIcons.EDIT,
 				c -> {
-					table.getEditor();
+					// TODO: open editor programmatically, getEditor() does not
+					// have a method for it, maybe get seleted row and open
+					// editor form there?
 				});
 
 		menuButtonRemove.setEnabled(false);

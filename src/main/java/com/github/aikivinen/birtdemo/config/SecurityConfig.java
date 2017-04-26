@@ -13,8 +13,6 @@ import org.springframework.security.config.annotation.web.configuration.*;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-	@Autowired
-	DataSource dataSource;
 
 	@Autowired
 	public void configureGlobal(AuthenticationManagerBuilder auth)

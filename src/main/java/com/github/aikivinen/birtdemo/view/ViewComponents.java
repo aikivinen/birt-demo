@@ -25,11 +25,6 @@ public class ViewComponents {
 		// get file listing
 		try {
 			cBox.setItems(Files.walk(reportPath));
-
-			// cBox.setItems(Files.walk(reportPath).filter(f ->
-			// Files.isRegularFile(f))
-			// .map(f ->
-			// f.getFileName().toString()).collect(Collectors.toList()));
 			
 		} catch (IOException e) {
 			logger.error("Caught exception: ", e);

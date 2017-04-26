@@ -5,10 +5,13 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 
@@ -23,6 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import com.vaadin.data.HasValue.ValueChangeEvent;
 import com.vaadin.server.VaadinService;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
@@ -42,138 +46,119 @@ import com.vaadin.ui.Upload.SucceededListener;
 @Component
 public class ReportsViewTab2 extends VerticalLayout {
 
-	/*
-	
-	@Autowired
-	MessageSource messageSource;
+	private static final Logger logger = LoggerFactory.getLogger(ReportsViewTab2.class);
 
 	@Autowired
-	ApplicationContext context;
-
-	private Logger logger = LoggerFactory.getLogger(ReportsViewTab2.class);
+	private MessageSource messageSource;
 
 	private String reportPath;
-	private Button removeReport;
-	private ComboBox cBox;
-	private Button addReport;
-	private Button saveButton;
-	private TextArea textArea;
-	private ObjectProperty<String> textAreaProperty;
 
-	private Authentication auth;
-	private String userName;
+	private Button removeReport;
+
+	private ComboBox<Path> cBox;
+
+	private Button addReport;
+
+	private Button saveButton;
+
+	private TextArea textArea;
+	// private ObjectProperty<String> textAreaProperty;
 
 	@PostConstruct
 	void init() {
-		auth = SecurityContextHolder.getContext().getAuthentication();
-		userName = auth.getName();
-		SQLContainer users = (SQLContainer) context.getBean("sqlContainer", "users", false);
 
-		Item user = users.getItem(new RowId(userName));
+		// auth = SecurityContextHolder.getContext().getAuthentication();
+		// userName = auth.getName();
+		// SQLContainer users = (SQLContainer) context.getBean("sqlContainer",
+		// "users", false);
+		//
+		// Item user = users.getItem(new RowId(userName));
+		//
+		// if ((boolean) user.getItemProperty("right_add_report").getValue()
+		// || (boolean) user.getItemProperty("right_remove_report").getValue()
+		// || (boolean) user.getItemProperty("right_edit_report").getValue()) {
 
-		if ((boolean) user.getItemProperty("right_add_report").getValue()
-				|| (boolean) user.getItemProperty("right_remove_report").getValue()
-				|| (boolean) user.getItemProperty("right_edit_report").getValue()) {
+		reportPath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath() + "/report-designs/";
+		setMargin(true);
+		setSpacing(true);
 
-			reportPath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath() + "/report-designs/";
-			setMargin(true);
-			setSpacing(true);
+		addComponent(new Label(messageSource.getMessage("caption.editreports", null, getLocale())));
 
-			addComponent(new Label(messageSource.getMessage("caption.editreports", null, getLocale())));
+		HorizontalLayout horizontal = new HorizontalLayout();
 
-			HorizontalLayout horizontal = new HorizontalLayout();
+		cBox = ViewComponents.buildFileListingComboBox(messageSource.getMessage("caption.reportbox", null, getLocale()),
+				"Select report", Paths.get(reportPath), event -> {
+					Optional.ofNullable(event).map(ValueChangeEvent::getValue).ifPresent(ev -> {
+						try {
+							textArea.setValue(
+									StringUtils.collectionToDelimitedString(Files.readAllLines(cBox.getValue()), "\n"));
+						} catch (IOException e) {
+							logger.error("Caught exception: ", e);
+						}
 
-			removeReport = new Button(messageSource.getMessage("caption.removereport", null, getLocale()), event -> {
-				try {
-					Files.deleteIfExists(Paths.get(reportPath + cBox.getValue().toString()));
-				} catch (IOException e) {
-					logger.error("Caught exception: ", e);
-				} catch (NullPointerException e) {
-					logger.error("Caught exception: ", e);
-				}
+					});
+				});
 
-			});
-
-			addReport = new Button(messageSource.getMessage("caption.addreport", null, getLocale()), event -> {
-				UI.getCurrent().addWindow(new UploadWindow());
-			});
-
-			saveButton = new Button(messageSource.getMessage("caption.save", null, getLocale()), event -> {
-				try {
-					Files.write(Paths.get(reportPath + cBox.getValue()), textArea.getValue().getBytes(),
-							StandardOpenOption.WRITE);
-				} catch (IOException e) {
-					logger.error("Caught exception: ", e);
-				}
-
-			});
-
-			textArea = new TextArea();
-			textArea.setWordwrap(false);
-			textArea.setSizeFull();
-			textAreaProperty = new ObjectProperty<String>(
-					messageSource.getMessage("caption.selectreport", null, getLocale()));
-			textArea.setPropertyDataSource(textAreaProperty);
-
-			horizontal.addComponent(setupComboBox());
-			horizontal.addComponent(removeReport);
-			horizontal.addComponent(addReport);
-			horizontal.setSpacing(true);
-
-			addComponent(horizontal);
-			addComponent(textArea);
-			addComponent(saveButton);
-
-			setExpandRatio(textArea, 1);
-
-			if (!(boolean) user.getItemProperty("right_add_report").getValue()) {
-				addReport.setEnabled(false);
-			}
-
-			if (!(boolean) user.getItemProperty("right_remove_report").getValue()) {
-				removeReport.setEnabled(false);
-			}
-
-			if (!(boolean) user.getItemProperty("right_edit_report").getValue()) {
-				saveButton.setEnabled(false);
-				textArea.setVisible(false);
-			} else {
-				setSizeFull();
-			}
-		} else {
-			addComponent(new Label("You are not allowed to edit, add or remove report designs"));
-		}
-
-	}
-
-	private ComboBox setupComboBox() {
-		cBox = new ComboBox();
-		cBox.setNullSelectionAllowed(false);
-		cBox.setInputPrompt(messageSource.getMessage("caption.reportbox", null, getLocale()));
-
-		// get file listing
-		try {
-			Files.walk(Paths.get(reportPath)).forEach(filePath -> {
-				if (Files.isRegularFile(filePath)) {
-					cBox.addItem(filePath.getFileName().toString());
-				}
-			});
-		} catch (IOException e) {
-			logger.error("Caught exception: ", e);
-		}
-
-		cBox.addValueChangeListener(event -> {
-			if (event.getProperty().getValue() != null) {
-				List<String> lines = null;
-				try {
-					lines = Files.readAllLines(Paths.get(reportPath + cBox.getValue()));
-				} catch (IOException e) {
-					logger.error("Caught exception: ", e);
-				}
-				textAreaProperty.setValue(StringUtils.collectionToDelimitedString(lines, "\n"));
-			}
+		removeReport = new Button(messageSource.getMessage("caption.removereport", null, getLocale()), event -> {
+			try {
+				Files.deleteIfExists(cBox.getValue());
+				cBox.setItems(Files.walk(Paths.get(reportPath)));
+			} catch (IOException e) {
+				logger.error("Caught exception: ", e);
+			} 
 		});
-		return cBox;
+
+		addReport = new Button(messageSource.getMessage("caption.addreport", null, getLocale()), event -> {
+			UI.getCurrent().addWindow(new UploadWindow());
+		});
+
+		saveButton = new Button(messageSource.getMessage("caption.save", null, getLocale()), event -> {
+			try {
+				Files.write(Paths.get(reportPath + cBox.getValue()), textArea.getValue().getBytes(),
+						StandardOpenOption.WRITE);
+			} catch (IOException e) {
+				logger.error("Caught exception: ", e);
+			}
+
+		});
+
+		textArea = new TextArea();
+		textArea.setWordWrap(false);
+		textArea.setSizeFull();
+
+		horizontal.addComponent(cBox);
+		horizontal.addComponent(removeReport);
+		horizontal.addComponent(addReport);
+		horizontal.setSpacing(true);
+
+		addComponent(horizontal);
+		addComponent(textArea);
+		addComponent(saveButton);
+
+		setExpandRatio(textArea, 1);
+		setSizeFull();
+
+		// if (!(boolean) user.getItemProperty("right_add_report").getValue()) {
+		// addReport.setEnabled(false);
+		// }
+		//
+		// if (!(boolean)
+		// user.getItemProperty("right_remove_report").getValue()) {
+		// removeReport.setEnabled(false);
+		// }
+		//
+		// if (!(boolean) user.getItemProperty("right_edit_report").getValue())
+		// {
+		// saveButton.setEnabled(false);
+		// textArea.setVisible(false);
+		// }
+		// }
+		//
+		// else {
+		// addComponent(new Label("You are not allowed to edit, add or remove
+		// report designs"));
+		// }
+
 	}
 
 	private class UploadWindow extends Window {
@@ -225,11 +210,12 @@ public class ReportsViewTab2 extends VerticalLayout {
 			return fos;
 		}
 
+		@Override
 		public void uploadSucceeded(SucceededEvent event) {
 			Notification.show(messageSource.getMessage("caption.uploadsuccess", null, getLocale()),
 					Notification.Type.HUMANIZED_MESSAGE);
 			logger.info("File uploaded successfully");
 		}
 	}
-	*/
+
 }

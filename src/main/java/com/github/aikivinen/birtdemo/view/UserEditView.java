@@ -44,13 +44,13 @@ public class UserEditView extends VerticalLayout implements View {
 	private Logger logger = LoggerFactory.getLogger(UserEditView.class);
 
 	@Autowired
-	MessageSource messageSource;
+	private MessageSource messageSource;
 
 	@Autowired
-	ApplicationContext context;
+	private ApplicationContext context;
 
 	@Autowired
-	UserRepository userRepository;
+	private UserRepository userRepository;
 
 	private Grid<User> table;
 

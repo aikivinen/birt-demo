@@ -14,15 +14,10 @@ import org.springframework.context.ApplicationContextAware;
  * Factory bean for the instance of the {@link IReportEngine report engine}.
  * 
  */
-public class BirtEngineFactory implements FactoryBean, ApplicationContextAware,
+public class BirtEngineFactory implements FactoryBean<IReportEngine>,
 		DisposableBean {
 
-	private ApplicationContext context;
 	private IReportEngine birtEngine;
-
-	public void setApplicationContext(ApplicationContext ctx) {
-		this.context = ctx;
-	}
 
 	public boolean isSingleton() {
 		return true;
@@ -36,9 +31,6 @@ public class BirtEngineFactory implements FactoryBean, ApplicationContextAware,
 	public IReportEngine getObject() {
 
 		EngineConfig config = new EngineConfig();
-
-		// This line injects the Spring Context into the BIRT Context
-		// config.getAppContext().put("spring", this.context );
 
 		try {
 			Platform.startup(config);
@@ -54,7 +46,7 @@ public class BirtEngineFactory implements FactoryBean, ApplicationContextAware,
 	}
 
 	@Override
-	public Class getObjectType() {
+	public Class<IReportEngine> getObjectType() {
 		return IReportEngine.class;
 	}
 }
